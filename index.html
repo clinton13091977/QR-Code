@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICU Equipment QR Generator | GPT Healthcare Ltd.</title>
+<style>
+  body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f6f8; margin: 20px; color: #333; }
+  .container { max-width: 1200px; margin: auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  header { text-align: center; border-bottom: 2px solid #007bff; margin-bottom: 20px; padding-bottom: 10px; }
+  header img { height: 70px; }
+  h2 { color: #007bff; text-align: center; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  th, td { border: 1px solid #ccc; padding: 6px; font-size: 14px; text-align: center; }
+  th { background: #007bff; color: white; }
+  input { width: 100%; border: none; background: transparent; text-align: center; }
+  input:focus { outline: none; background: #eef; }
+  .btn { background: #007bff; color: #fff; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; margin: 2px; font-size: 13px; }
+  .btn:hover { background: #0056b3; }
+  .add-row { background: #28a745; }
+  .add-row:hover { background: #218838; }
+  #qrcode { margin-top: 20px; text-align: center; }
+  #previewPage { display: none; width: 210mm; min-height: 297mm; background: white; margin: auto; padding: 20mm; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+  @media print { body * { visibility: hidden; } #previewPage, #previewPage * { visibility: visible; } #previewPage { position: absolute; left: 0; top: 0; } }
+  .accessoriesTable input { font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="container" id="formPage">
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg" alt="Company Logo">
+    <h2>GPT Healthcare Ltd.<br><small>123, Main Road, Kolkata, West Bengal, India</small></h2>
+  </header>
+
+  <h2>ICU Equipment Master List</h2>
+  <table id="equipmentTable">
+    <tr>
+      <th>Asset No</th><th>Dept</th><th>Description</th><th>Model</th><th>Make</th><th>Serial No</th>
+      <th>Install Date</th><th>Warranty Exp</th><th>PO No</th><th>PO Date</th><th>PO Amount</th>
+      <th>Accessories</th><th>QR</th><th>Action</th>
+    </tr>
+    <tr>
+      <td><input value="ICU-001"></td>
+      <td><input value="ICU"></td>
+      <td><input value="Multipara Monitor"></td>
+      <td><input value="MPX-900"></td>
+      <td><input value="Mindray"></td>
+      <td><input value="12345XYZ"></td>
+      <td><input type="date" value="2024-06-12"></td>
+      <td><input type="date" value="2027-06-11"></td>
+      <td><input value="PO-5678"></td>
+      <td><input type="date" value="2024-05-30"></td>
+      <td><input value="₹2,50,000"></td>
+      <td class="accessoriesCell">
+        <table class="accessoriesTable">
+          <tr><th>S/N</th><th>Description</th><th>Qty</th><th>Serial No</th></tr>
+          <tr>
+            <td><input value="1"></td><td><input value="SpO2 Probe"></td><td><input value="1"></td><td><input value="SP1234"></td>
+          </tr>
+        </table>
+        <button class="btn" onclick="addAccessoryRow(this)">+Add</button>
+      </td>
+      <td class="qrCell"></td>
+      <td>
+        <button class="btn" onclick="generateRowQR(this)">QR</button>
+        <button class="btn" onclick="downloadQR(this)">Download QR</button>
+        <button class="btn" onclick="showPreview(this)">Preview</button>
+      </td>
+    </tr>
+  </table>
+  <button class="btn add-row" onclick="addEquipmentRow()">+ Add Equipment</button>
+</div>
+
+<div id="previewPage">
+  <header style="text-align:center; border-bottom:2px solid #007bff;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg" alt="Logo" style="height:70px;">
+    <h2>GPT Healthcare Ltd.<br><small>123, Main Road, Kolkata, West Bengal, India</small></h2>
+  </header>
+  <div id="previewContent"></div>
+  <div id="previewQR" style="text-align:center; margin-top:15px;"></div>
+  <div style="text-align:center; margin-top:20px;">
+    <button class="btn" onclick="goBack()">Back</button>
+    <button class="btn" onclick="downloadPreviewQR()">Download QR</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+function addEquipmentRow() {
+  const table = document.getElementById("equipmentTable");
+  const row = table.insertRow(-1);
+  row.innerHTML = `<td><input></td><td><input></td><td><input></td><td><input></td><td><input></td><td><input></td>
+    <td><input type="date"></td><td><input type="date"></td><td><input></td><td><input type="date"></td><td><input></td>
+    <td class="accessoriesCell"><table class="accessoriesTable"><tr><th>S/N</th><th>Description</th><th>Qty</th><th>Serial No</th></tr></table>
+    <button class="btn" onclick="addAccessoryRow(this)">+Add</button></td>
+    <td class="qrCell"></td>
+    <td><button class="btn" onclick="generateRowQR(this)">QR</button><button class="btn" onclick="downloadQR(this)">Download QR</button><button class="btn" onclick="showPreview(this)">Preview</button></td>`;
+}
+function addAccessoryRow(btn) {
+  const table = btn.previousElementSibling;
+  const row = table.insertRow(-1);
+  row.innerHTML = `<td><input></td><td><input></td><td><input></td><td><input></td>`;
+}
+function collectRowData(row) {
+  const accessories = [];
+  row.querySelectorAll(".accessoriesTable tr").forEach((tr,i)=>{
+    if(i===0) return;
+    const cells = tr.querySelectorAll("input");
+    if(cells[0].value || cells[1].value) accessories.push({sn:cells[0].value, desc:cells[1].value, qty:cells[2].value, serial:cells[3].value});
+  });
+  return {
+    assetNo: row.cells[0].querySelector("input").value,
+    department: row.cells[1].querySelector("input").value,
+    description: row.cells[2].querySelector("input").value,
+    model: row.cells[3].querySelector("input").value,
+    make: row.cells[4].querySelector("input").value,
+    serial: row.cells[5].querySelector("input").value,
+    installDate: row.cells[6].querySelector("input").value,
+    warranty: row.cells[7].querySelector("input").value,
+    poNo: row.cells[8].querySelector("input").value,
+    poDate: row.cells[9].querySelector("input").value,
+    poAmount: row.cells[10].querySelector("input").value,
+    accessories
+  };
+}
+function generateRowQR(btn) {
+  const row = btn.parentElement.parentElement;
+  const data = collectRowData(row);
+  const baseURL = window.location.origin + window.location.pathname;
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const qrLink = `${baseURL}?data=${encoded}`;
+  const qrCell = row.querySelector(".qrCell");
+  qrCell.innerHTML = "";
+  const qr = new QRCode(qrCell, { text: qrLink, width: 80, height: 80 });
+  qrCell.setAttribute("data-qr", qrLink); // store link for download
+  alert("✅ QR generated for " + data.assetNo);
+}
+function downloadQR(btn) {
+  const row = btn.parentElement.parentElement;
+  const qrCell = row.querySelector(".qrCell canvas");
+  if(qrCell){
+    const link = document.createElement("a");
+    link.href = qrCell.toDataURL("image/png");
+    link.download = "QR_" + row.cells[0].querySelector("input").value + ".png";
+    link.click();
+  } else { alert("Generate QR first!"); }
+}
+function showPreview(btn) {
+  const row = btn.parentElement.parentElement;
+  const data = collectRowData(row);
+  renderPreview(data);
+  document.getElementById("formPage").style.display = "none";
+  document.getElementById("previewPage").style.display = "block";
+}
+function renderPreview(data) {
+  let accHTML = `<table><tr><th>S/N</th><th>Description</th><th>Qty</th><th>Serial No</th></tr>`;
+  data.accessories.forEach(a=>{ accHTML += `<tr><td>${a.sn}</td><td>${a.desc}</td><td>${a.qty}</td><td>${a.serial}</td></tr>`; });
+  accHTML += "</table>";
+  const content = `<table>
+      <tr><th>Asset No</th><td>${data.assetNo}</td></tr>
+      <tr><th>Department</th><td>${data.department}</td></tr>
+      <tr><th>Description</th><td>${data.description}</td></tr>
+      <tr><th>Model</th><td>${data.model}</td></tr>
+      <tr><th>Make</th><td>${data.make}</td></tr>
+      <tr><th>Serial No</th><td>${data.serial}</td></tr>
+      <tr><th>Install Date</th><td>${data.installDate}</td></tr>
+      <tr><th>Warranty Exp</th><td>${data.warranty}</td></tr>
+      <tr><th>PO Number</th><td>${data.poNo}</td></tr>
+      <tr><th>PO Date</th><td>${data.poDate}</td></tr>
+      <tr><th>PO Amount</th><td>${data.poAmount}</td></tr>
+    </table><h4>Accessories</h4>${accHTML}`;
+  document.getElementById("previewContent").innerHTML = content;
+
+  const baseURL = window.location.origin + window.location.pathname;
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const qrLink = `${baseURL}?data=${encoded}`;
+  document.getElementById("previewQR").innerHTML = "";
+  new QRCode(document.getElementById("previewQR"), { text: qrLink, width: 150, height: 150 });
+}
+function downloadPreviewQR() {
+  const canvas = document.querySelector("#previewQR canvas");
+  if(canvas){
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "QR_Preview.png";
+    link.click();
+  } else alert("Generate QR first!");
+}
+function goBack() { document.getElementById("previewPage").style.display = "none"; document.getElementById("formPage").style.display = "block"; }
+window.onload = function() {
+  const params = new URLSearchParams(window.location.search);
+  if(params.has("data")){
+    const decoded = JSON.parse(decodeURIComponent(params.get("data")));
+    renderPreview(decoded);
+    document.getElementById("formPage").style.display = "none";
+    document.getElementById("previewPage").style.display = "block";
+  }
+};
+</script>
+</body>
+</html>
